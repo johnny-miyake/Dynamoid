@@ -144,6 +144,9 @@ module Dynamoid #:nodoc:
         { :consistent_read => consistent_read }
       end
 
+      def scan_index_forward_opts
+        { :scan_index_forward => @scan_index_forward }
+      end
       private
 
       # The actual records referenced by the association.
@@ -188,7 +191,8 @@ module Dynamoid #:nodoc:
       # @return [Set] a Set containing the IDs from the index.
       def ids_from_index
         if index.range_key?
-          Dynamoid::Adapter.query(index.table_name, index_query.merge(consistent_opts)).inject(Set.new) do |all, record|
+          opts = consistent_opts.merge(scan_index_forward_opts)
+          Dynamoid::Adapter.query(index.table_name, index_query.merge(opts)).inject(Set.new) do |all, record|
             all + Set.new(record[:ids])
           end
         else
